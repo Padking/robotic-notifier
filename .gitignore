@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# IDE
+.vscode/
+
+# Distribution / packaging
+eggs/
+.eggs/
+for_project/
+*.egg
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# IPython
+profile_default/
+ipython_config.py
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+__pypackages__/
+
+# Environments
+.env
+
+# Example files
+bar.py
+baz.py
+foo.py
+proba.py
+
+# Linter's settings
+.flake8
