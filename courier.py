@@ -27,9 +27,10 @@ def main():
         'timestamp': 1637421213.336591,
     }
 
-    raw_response = execute_communication_session(url, headers=headers, params=params)
+    raw_response = execute_communication_session(url, headers=headers, params=None)
     pprint(raw_response)
 
 
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
