@@ -1,3 +1,4 @@
+from contextlib import suppress
 from pprint import pprint
 
 import requests
@@ -5,8 +6,11 @@ import requests
 from environs import Env
 
 
-def execute_communication_session(url, headers=None, params=None):
-    response = requests.get(url, headers=headers, params=params)
+def execute_communication_session(url, headers=None,
+                                  params=None, timeout=90):
+
+    response = requests.get(url, params=params,
+                            headers=headers, timeout=timeout)
     response.raise_for_status()
 
     raw_response = response.json()
@@ -27,10 +31,12 @@ def main():
         'timestamp': 1637421213.336591,
     }
 
-    raw_response = execute_communication_session(url, headers=headers, params=None)
+    raw_response = execute_communication_session(url, headers=headers,
+                                                 params=None, timeout=120)
     pprint(raw_response)
 
 
 if __name__ == '__main__':
-    while True:
-        main()
+    with suppress(requests.ConnectionError, requests.ReadTimeout):
+        while True:
+            main()
