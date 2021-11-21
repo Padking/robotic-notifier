@@ -1,5 +1,6 @@
 from contextlib import suppress
 from pprint import pprint
+from typing import Dict
 
 import requests
 
@@ -18,7 +19,18 @@ def execute_communication_session(url, headers=None,
     return raw_response
 
 
-def main():
+def get_timestamp(ctx: Dict):
+    if ctx['status'] == 'timeout':
+        timestamp = ctx['timestamp_to_request']
+    elif ctx['status'] == 'found':
+        timestamp = ctx['last_attempt_timestamp']
+    elif ctx['status'] == 'poll_started':
+        timestamp = ''
+
+    return timestamp
+
+
+if __name__ == '__main__':
     env = Env()
     env.read_env()
 
@@ -27,16 +39,12 @@ def main():
     headers = {
         'Authorization': f'Token {devman_authorization_api_token}',
     }
-    params = {
-        'timestamp': 1637421213.336591,
-    }
+    raw_response = {'status': 'poll_started'}
 
-    raw_response = execute_communication_session(url, headers=headers,
-                                                 params=None, timeout=120)
-    pprint(raw_response)
-
-
-if __name__ == '__main__':
     with suppress(requests.ConnectionError, requests.ReadTimeout):
         while True:
-            main()
+            params = {
+                'timestamp': get_timestamp(raw_response),
+            }
+            raw_response = execute_communication_session(url, headers=headers,
+                                                         params=params, timeout=None)
