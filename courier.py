@@ -1,5 +1,4 @@
 from contextlib import suppress
-from pprint import pprint
 from typing import Dict
 
 import requests
