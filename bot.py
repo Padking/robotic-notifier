@@ -13,25 +13,29 @@ from courier import (
 )
 
 
-def get_prepared_msg_for_sending(msg_template: str, ctx: Dict,
-                                 additional_ctx: Dict) -> str:
+def get_prepared_msg_text_for_sending(msg_template: str, ctx: Dict,
+                                      additional_ctx: Dict) -> str:
 
-    verified_lessons = ctx.get('new_attempts', None)
-    msg = 'Проверенных работ нет'
-    if verified_lessons:
+    msg_text = 'Проверенных работ нет'
+    if verified_lessons := ctx.get('new_attempts', None):
         verified_lesson = verified_lessons[0]
         lesson_check_status = verified_lesson['is_negative']
-        resolved = additional_ctx['resolved']
-        not_resolved = additional_ctx['not_resolved']
-        lesson_check_result = resolved if lesson_check_status else not_resolved
+
+        resolved_lesson_msg_text = additional_ctx['resolved']
+        not_resolved_lesson_msg_text = additional_ctx['not_resolved']
+        lesson_check_result = (
+            resolved_lesson_msg_text if lesson_check_status
+            else not_resolved_lesson_msg_text
+        )
+
         placeholders = {
             'lesson_title': verified_lesson['lesson_title'],
             'lesson_check_result': lesson_check_result,
             'lesson_url': verified_lesson['lesson_url'],
         }
-        msg = msg_template.format(**placeholders)
+        msg_text = msg_template.format(**placeholders)
 
-    return msg
+    return msg_text
 
 
 def main():
@@ -48,7 +52,7 @@ def main():
     }
     raw_response = {'status': 'poll_started'}
 
-    lesson_check_status = {
+    lesson_check_status_to_msg_text = {
         'resolved': (
             'Преподавателю всё понравилось, '
             'можно приступать к следующему уроку!'
@@ -69,8 +73,8 @@ def main():
             }
             raw_response = execute_communication_session(url, headers=headers,
                                                          params=params, timeout=None)
-            msg_text = get_prepared_msg_for_sending(msg_template, raw_response,
-                                                    lesson_check_status)
+            msg_text = get_prepared_msg_text_for_sending(msg_template, raw_response,
+                                                         lesson_check_status_to_msg_text)
             bot.send_message(text=msg_text, chat_id=telegram_user_chat_id,
                              parse_mode=PARSEMODE_HTML,
                              disable_web_page_preview=True,
