@@ -1,4 +1,4 @@
-from contextlib import suppress
+import time
 from typing import Dict
 
 import requests
@@ -87,8 +87,9 @@ def main():
 
     bot = Bot(token=telegram_bot_api_token)
     timestamp = get_timestamp()
-    with suppress(requests.ConnectionError, requests.ReadTimeout):
-        while True:
+
+    while True:
+        try:
             params = {
                 'timestamp': timestamp,
             }
@@ -102,6 +103,11 @@ def main():
                              parse_mode=PARSEMODE_HTML,
                              disable_web_page_preview=True,
                              disable_notification=True)
+        except requests.ConnectionError:
+            time.sleep(60)
+            continue
+        except requests.ReadTimeout:
+            continue
 
 
 if __name__ == '__main__':
