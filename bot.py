@@ -8,16 +8,15 @@ from telegram import Bot
 from telegram.constants import PARSEMODE_HTML
 
 
-def execute_communication_session(url, headers=None,
-                                  params=None, timeout=90):
+def get_response_payload(url, headers=None,
+                         params=None, timeout=90):
 
     response = requests.get(url, params=params,
                             headers=headers, timeout=timeout)
     response.raise_for_status()
+    payload = response.json()
 
-    raw_response = response.json()
-
-    return raw_response
+    return payload
 
 
 def get_timestamp(ctx: Dict = None):
@@ -34,8 +33,9 @@ def get_timestamp(ctx: Dict = None):
     return timestamp
 
 
-def get_prepared_msg_text_for_sending(msg_template: str, ctx: Dict,
-                                      additional_ctx: Dict) -> str:
+def get_message_text(msg_template: str,
+                     ctx: Dict,
+                     additional_ctx: Dict) -> str:
 
     msg_text = 'Проверенных работ нет'
     if verified_lessons := ctx.get('new_attempts', None):
@@ -92,12 +92,12 @@ def main():
             params = {
                 'timestamp': timestamp,
             }
-            raw_response = execute_communication_session(url, headers=headers,
-                                                         params=params, timeout=None)
-            timestamp = get_timestamp(raw_response)
+            payload = get_response_payload(url, headers=headers,
+                                           params=params, timeout=None)
+            timestamp = get_timestamp(payload)
 
-            msg_text = get_prepared_msg_text_for_sending(msg_template, raw_response,
-                                                         lesson_check_status_to_msg_text)
+            msg_text = get_message_text(msg_template, payload,
+                                        lesson_check_status_to_msg_text)
             bot.send_message(text=msg_text, chat_id=telegram_user_chat_id,
                              parse_mode=PARSEMODE_HTML,
                              disable_web_page_preview=True,
