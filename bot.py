@@ -1,4 +1,6 @@
 import time
+
+from textwrap import dedent
 from typing import Dict
 
 import requests
@@ -72,18 +74,20 @@ def main():
         'Authorization': f'Token {devman_authorization_api_token}',
     }
 
+    resolved_text_undedented = '''
+        Преподавателю всё понравилось,
+        можно приступать к следующему уроку!
+    '''
     lesson_check_status_to_msg_text = {
-        'resolved': (
-            'Преподавателю всё понравилось, '
-            'можно приступать к следующему уроку!'
-        ),
+        'resolved': dedent(resolved_text_undedented),
         'not_resolved': 'К сожалению, в работе нашлись ошибки.',
     }
-    msg_template = (
-        'У вас проверили работу &#171{lesson_title}&#187 \n\n'
-        '{lesson_check_result} \n\n'
-        '<a href="{lesson_url}">Ссылка на задачу</a>'
-    )
+    msg_template_undedented = '''
+        У вас проверили работу &#171{lesson_title}&#187
+        {lesson_check_result}
+        <a href="{lesson_url}">Ссылка на задачу</a>
+    '''
+    msg_template = dedent(msg_template_undedented)
 
     bot = Bot(token=telegram_bot_api_token)
     timestamp = get_timestamp()
