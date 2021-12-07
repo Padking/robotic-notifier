@@ -20,13 +20,16 @@ def execute_communication_session(url, headers=None,
     return raw_response
 
 
-def get_timestamp(ctx: Dict):
-    if ctx['status'] == 'timeout':
+def get_timestamp(ctx: Dict = None):
+
+    ctx = ctx or {}
+    status = ctx.get('status', '')
+
+    timestamp = ''
+    if status == 'timeout':
         timestamp = ctx['timestamp_to_request']
-    elif ctx['status'] == 'found':
+    elif status == 'found':
         timestamp = ctx['last_attempt_timestamp']
-    elif ctx['status'] == 'poll_started':
-        timestamp = ''
 
     return timestamp
 
@@ -68,7 +71,6 @@ def main():
     headers = {
         'Authorization': f'Token {devman_authorization_api_token}',
     }
-    raw_response = {'status': 'poll_started'}
 
     lesson_check_status_to_msg_text = {
         'resolved': (
@@ -84,13 +86,16 @@ def main():
     )
 
     bot = Bot(token=telegram_bot_api_token)
+    timestamp = get_timestamp()
     with suppress(requests.ConnectionError, requests.ReadTimeout):
         while True:
             params = {
-                'timestamp': get_timestamp(raw_response),
+                'timestamp': timestamp,
             }
             raw_response = execute_communication_session(url, headers=headers,
                                                          params=params, timeout=None)
+            timestamp = get_timestamp(raw_response)
+
             msg_text = get_prepared_msg_text_for_sending(msg_template, raw_response,
                                                          lesson_check_status_to_msg_text)
             bot.send_message(text=msg_text, chat_id=telegram_user_chat_id,
