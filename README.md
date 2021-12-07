@@ -32,16 +32,6 @@
   ![no_proven_lessons](https://github.com/Padking/robotic-notifier/blob/master/screenshots/no_proven_lessons.png)
 
 
-## Структура проекта
-
-### `bot.py`
-
-_Реализует логику бота с long polling_
-
-### `courier.py`
-
-_Реализует long polling без бота_
-
 ### Используемые технологии
 
 * [requests](https://requests.readthedocs.io/en/master/)
