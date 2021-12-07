@@ -7,10 +7,28 @@ from environs import Env
 from telegram import Bot
 from telegram.constants import PARSEMODE_HTML
 
-from courier import (
-    execute_communication_session,
-    get_timestamp,
-)
+
+def execute_communication_session(url, headers=None,
+                                  params=None, timeout=90):
+
+    response = requests.get(url, params=params,
+                            headers=headers, timeout=timeout)
+    response.raise_for_status()
+
+    raw_response = response.json()
+
+    return raw_response
+
+
+def get_timestamp(ctx: Dict):
+    if ctx['status'] == 'timeout':
+        timestamp = ctx['timestamp_to_request']
+    elif ctx['status'] == 'found':
+        timestamp = ctx['last_attempt_timestamp']
+    elif ctx['status'] == 'poll_started':
+        timestamp = ''
+
+    return timestamp
 
 
 def get_prepared_msg_text_for_sending(msg_template: str, ctx: Dict,
