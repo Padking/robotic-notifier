@@ -1,0 +1,14 @@
+[Unit]
+Description=robotic-notifier
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=<absolute path to project directory>
+ExecStart=<absolute path to `bot.py`>
+KillMode=process
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
