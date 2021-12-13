@@ -80,8 +80,8 @@ Prod-среда использует файл `bot.service`.
 
 ### Организация prod-среды
 
-- выполнить пункты из раздела ["Организация dev-среды"](),  # FIXME
-- отредактировать [файл]().  # FIXME
+- выполнить пункты из раздела ["Организация dev-среды"](https://github.com/Padking/robotic-notifier#организация-dev-среды),
+- отредактировать [файл](https://github.com/Padking/robotic-notifier/blob/master/bot.service).
 
 ## Установка
 
@@ -141,7 +141,7 @@ Ctrl-c
 ```sh
 deactivate
 ```
-- скорректировать [шебанг]() (с учётом особенностей настройки ВО),
+- скорректировать [shebang](https://github.com/Padking/robotic-notifier/blob/master/bot.py#L1) (с учётом особенностей настройки ВО),
 - сделать файл исполняемым:
 ```sh
 chmod +x bot.py
