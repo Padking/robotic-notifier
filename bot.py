@@ -1,5 +1,6 @@
 #!bin/python
 
+import logging
 import time
 
 from textwrap import dedent
@@ -10,6 +11,9 @@ import requests
 from environs import Env
 from telegram import Bot
 from telegram.constants import PARSEMODE_HTML
+
+
+logger = logging.getLogger(__file__)
 
 
 def get_response_payload(url, headers=None,
@@ -63,18 +67,7 @@ def get_message_text(msg_template: str,
     return msg_text
 
 
-def main():
-    env = Env()
-    env.read_env()
-
-    telegram_bot_api_token = env('TELEGRAM_BOT_API_TOKEN')
-    telegram_user_chat_id = env('TELEGRAM_USER_CHAT_ID')
-
-    url = 'https://dvmn.org/api/long_polling/'
-    devman_authorization_api_token = env('DEVMAN_API_AUTHORIZATION_TOKEN')
-    headers = {
-        'Authorization': f'Token {devman_authorization_api_token}',
-    }
+def long_polling(bot, telegram_user_chat_id, url, headers: Dict):
 
     resolved_text_undedented = '''
         Преподавателю всё понравилось,
@@ -91,16 +84,24 @@ def main():
     '''
     msg_template = dedent(msg_template_undedented)
 
-    bot = Bot(token=telegram_bot_api_token)
-    timestamp = get_timestamp()
+    get_starting_msg_text = 'Бот запущен'
+    restart_msg_text = 'Бот перезапустится через время'
 
+    connection_error_msg_text = 'Соединение с Сетью разорвано'
+    readtimeout_msg_text = (
+        'Devman-сервер не предоставил ответ за время, равное тайм-ауту'
+    )
+    error_msg_text = 'Возникло непреднамеренное завершение работы.'
+
+    timestamp = get_timestamp()
+    logger.info(get_starting_msg_text)
     while True:
         try:
             params = {
                 'timestamp': timestamp,
             }
             payload = get_response_payload(url, headers=headers,
-                                           params=params, timeout=None)
+                                           params=params)
             timestamp = get_timestamp(payload)
 
             msg_text = get_message_text(msg_template, payload,
@@ -110,11 +111,47 @@ def main():
                              disable_web_page_preview=True,
                              disable_notification=True)
         except requests.ConnectionError:
+            logger.warning(connection_error_msg_text)
+            logger.info(restart_msg_text)
             time.sleep(60)
             continue
         except requests.ReadTimeout:
+            logger.warning(readtimeout_msg_text)
+            continue
+        except Exception:
+            logger.exception(error_msg_text)
+            logger.info(restart_msg_text)
+            time.sleep(120)
             continue
 
 
 if __name__ == '__main__':
-    main()
+    env = Env()
+    env.read_env()
+
+    telegram_bot_api_token = env('TELEGRAM_BOT_API_TOKEN')
+    telegram_user_chat_id = env('TELEGRAM_USER_CHAT_ID')
+
+    url = 'https://dvmn.org/api/long_polling/'
+    devman_authorization_api_token = env('DEVMAN_API_AUTHORIZATION_TOKEN')
+    headers = {
+        'Authorization': f'Token {devman_authorization_api_token}',
+    }
+
+    bot = Bot(token=telegram_bot_api_token)
+
+    LOG_FILENAME = 'bot.log'
+    logging.basicConfig(filename=LOG_FILENAME,
+                        format='%(levelname)s %(asctime)s %(message)s')
+
+    class BotLogHandler(logging.Handler):
+        def emit(self, record: logging.LogRecord):
+            log_entry_msg = self.format(record)
+            bot.send_message(text=log_entry_msg, chat_id=telegram_user_chat_id,
+                             parse_mode=PARSEMODE_HTML,
+                             disable_notification=True)
+
+    logger.setLevel(logging.INFO)
+    logger.addHandler(BotLogHandler())
+
+    long_polling(bot, telegram_user_chat_id, url, headers)
